@@ -39,6 +39,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Criterias\And.cs" />
+    <Compile Include="Criterias\Bases\CriteriaBase.cs" />
+    <Compile Include="Criterias\Bases\FieldCriteriaBase.cs" />
+    <Compile Include="Criterias\Bases\JunctionCriteriaBase.cs" />
+    <Compile Include="Criterias\Eq.cs" />
+    <Compile Include="Criterias\Or.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
