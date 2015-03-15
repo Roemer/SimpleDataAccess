@@ -1,13 +1,13 @@
 <?php
 
 /**
- * SimplSDAtaAccess.inc.php
+ * SimpleDataAccess.inc.php
  * Provides a simple Data Access Layer for PHP
  * 
- * Project Url: https://github.com/Roemer/SimplSDAtaAccess
+ * Project Url: https://github.com/Roemer/SimpleDataAccess
  * 
  * @author Roman Baeriswyl
- * @version 0.9
+ * @version 0.91
  * @copyright Copyright &copy; 2012-2015 Roman Baeriswyl
  * 
  * ToDo
@@ -19,7 +19,11 @@
 /**
  * This Class provides Connections
  */
-class SDAConnectionProvider {
+ 
+namespace SimpleDataAccess;
+use \PDO;
+
+class ConnectionProvider {
 
     private $_dbUser;
     private $_dbPassword;
@@ -46,7 +50,7 @@ class SDAConnectionProvider {
 /**
  * This Class is for creating Queries
  */
-class SDAQuery {
+class Query {
 
     public $Limit;
     public $ExpressionList;
@@ -60,13 +64,13 @@ class SDAQuery {
         $this->ExcludeFields = array();
     }
 
-    function Add(SDABaseCriteria $expression) {
+    function Add(BaseCriteria $expression) {
         $this->ExpressionList[] = $expression;
         return $this;
     }
 
     function AddOrder($fieldNumber, $sortDirection) {
-        $this->OrderFields[] = new SDAOrderByItem($fieldNumber, $sortDirection);
+        $this->OrderFields[] = new OrderByItem($fieldNumber, $sortDirection);
         return $this;
     }
 
@@ -74,12 +78,12 @@ class SDAQuery {
         $this->ExcludeFields[] = $fieldNumber;
     }
 
-    function GenerateAndFill(SDAMappingInfo $mappingInfo, array &$paramList) {
+    function GenerateAndFill(MappingInfo $mappingInfo, array &$paramList) {
         $firstFlag = true;
         $str = '';
         foreach ($this->ExpressionList as $expression) {
             // Check if the current Expression is a Junction Criteria (And/Or)
-            if (is_subclass_of($expression, 'SDAJunctionCriteria')) {
+            if (is_subclass_of($expression, 'JunctionCriteria')) {
                 if (!count($expression->ExpressionList) > 0) {
                     // It doesn't have and Sub-Criterias so skip it
                     continue;
@@ -99,7 +103,7 @@ class SDAQuery {
 /**
  * This Class is used for the Parameter Values in a Query
  */
-class SDAFieldParameter {
+class FieldParameter {
 
     public $ParamName;
     public $ParamType;
@@ -116,7 +120,7 @@ class SDAFieldParameter {
 /**
  * This Class holds Information for Ordering
  */
-class SDAOrderByItem {
+class OrderByItem {
 
     public $FieldNumber;
     public $SortDirection;
@@ -126,8 +130,8 @@ class SDAOrderByItem {
         $this->SortDirection = $sortDirection;
     }
 
-    function Generate(SDAMappingInfo $mappingInfo) {
-        return SDAUtils::Escape($mappingInfo->GetField($this->FieldNumber)->FieldName) . ' ' . (($this->SortDirection == 1) ? 'ASC' : 'DESC');
+    function Generate(MappingInfo $mappingInfo) {
+        return Utils::Escape($mappingInfo->GetField($this->FieldNumber)->FieldName) . ' ' . (($this->SortDirection == 1) ? 'ASC' : 'DESC');
     }
 
 }
@@ -135,7 +139,7 @@ class SDAOrderByItem {
 /**
  * Simulated Enum for the Sorting-Direction
  */
-class SDASortDirection {
+class SortDirection {
 
     const ASC = 1;
     const DESC = 2;
@@ -145,7 +149,7 @@ class SDASortDirection {
 /**
  * This is the Base-Class used for the Querying
  */
-abstract class SDABaseCriteria {
+abstract class BaseCriteria {
 
     public $IsNegate = false;
 
@@ -158,13 +162,13 @@ abstract class SDABaseCriteria {
         return $this->IsNegate ? "NOT ($text)" : $text;
     }
 
-    public abstract function GenerateAndFill(SDAMappingInfo $mappingInfo, array &$paramList);
+    public abstract function GenerateAndFill(MappingInfo $mappingInfo, array &$paramList);
 }
 
 /**
  * This is the Base-Class for Junction Criterias
  */
-abstract class SDAJunctionCriteria extends SDABaseCriteria {
+abstract class JunctionCriteria extends BaseCriteria {
 
     public $ExpressionList;
 
@@ -172,12 +176,12 @@ abstract class SDAJunctionCriteria extends SDABaseCriteria {
         $this->ExpressionList = array();
     }
 
-    public function Add(SDABaseCriteria $expression) {
+    public function Add(BaseCriteria $expression) {
         $this->ExpressionList[] = $expression;
         return $this;
     }
 
-    public function GenerateAndFill(SDAMappingInfo $mappingInfo, array &$paramList) {
+    public function GenerateAndFill(MappingInfo $mappingInfo, array &$paramList) {
         if (count($this->ExpressionList) > 0) {
             $str = '(';
             $flag = false;
@@ -200,7 +204,7 @@ abstract class SDAJunctionCriteria extends SDABaseCriteria {
 /**
  * This is the Base-Class for Field Criterias
  */
-abstract class SDAFieldCriteria extends SDABaseCriteria {
+abstract class FieldCriteria extends BaseCriteria {
 
     public $FieldNumber;
     public $Value;
@@ -210,11 +214,11 @@ abstract class SDAFieldCriteria extends SDABaseCriteria {
         $this->Value = $value;
     }
 
-    public function GenerateAndFill(SDAMappingInfo $mappingInfo, array &$paramList) {
+    public function GenerateAndFill(MappingInfo $mappingInfo, array &$paramList) {
         $field = $mappingInfo->GetField($this->FieldNumber);
         $paramName = ':' . $field->FieldName . '_' . count($paramList);
-        $paramList[] = new SDAFieldParameter($paramName, $field->FieldType, $this->Value);
-        return $this->Finalize(sprintf("%s %s %s", SDAUtils::Escape($field->FieldName), $this->GetOperator(), $paramName));
+        $paramList[] = new FieldParameter($paramName, $field->FieldType, $this->Value);
+        return $this->Finalize(sprintf("%s %s %s", Utils::Escape($field->FieldName), $this->GetOperator(), $paramName));
     }
 
     public abstract function GetOperator();
@@ -223,7 +227,7 @@ abstract class SDAFieldCriteria extends SDABaseCriteria {
 /**
  * Equal Criteria
  */
-class SDAEq extends SDAFieldCriteria {
+class EqCrit extends FieldCriteria {
 
     function __construct($fieldNumber, $value) {
         parent::__construct($fieldNumber, $value);
@@ -238,7 +242,7 @@ class SDAEq extends SDAFieldCriteria {
 /**
  * Greater-Equal Criteria
  */
-class SDAGe extends SDAFieldCriteria {
+class GeCrit extends FieldCriteria {
 
     function __construct($fieldNumber, $value) {
         parent::__construct($fieldNumber, $value);
@@ -253,7 +257,7 @@ class SDAGe extends SDAFieldCriteria {
 /**
  * Greater-Than Criteria
  */
-class SDAGt extends SDAFieldCriteria {
+class GtCrit extends FieldCriteria {
 
     function __construct($fieldNumber, $value) {
         parent::__construct($fieldNumber, $value);
@@ -268,7 +272,7 @@ class SDAGt extends SDAFieldCriteria {
 /**
  * Less-Equal Criteria
  */
-class SDALe extends SDAFieldCriteria {
+class LeCrit extends FieldCriteria {
 
     function __construct($fieldNumber, $value) {
         parent::__construct($fieldNumber, $value);
@@ -283,7 +287,7 @@ class SDALe extends SDAFieldCriteria {
 /**
  * Less-Than Criteria
  */
-class SDALt extends SDAFieldCriteria {
+class LtCrit extends FieldCriteria {
 
     function __construct($fieldNumber, $value) {
         parent::__construct($fieldNumber, $value);
@@ -298,7 +302,7 @@ class SDALt extends SDAFieldCriteria {
 /**
  * And Junction Criteria
  */
-class SDAAnd extends SDAJunctionCriteria {
+class AndCrit extends JunctionCriteria {
 
     public function GetOperator() {
         return "AND";
@@ -309,7 +313,7 @@ class SDAAnd extends SDAJunctionCriteria {
 /**
  * Or Junction Criteria
  */
-class SDAOr extends SDAJunctionCriteria {
+class OrCrit extends JunctionCriteria {
 
     public function GetOperator() {
         return "OR";
@@ -320,7 +324,7 @@ class SDAOr extends SDAJunctionCriteria {
 /**
  * IsNull Criteria
  */
-class SDAIsNull extends SDABaseCriteria {
+class IsNullCrit extends BaseCriteria {
 
     public $FieldNumber;
 
@@ -328,9 +332,9 @@ class SDAIsNull extends SDABaseCriteria {
         $this->FieldNumber = $fieldNumber;
     }
 
-    public function GenerateAndFill(SDAMappingInfo $mappingInfo, array &$paramList) {
+    public function GenerateAndFill(MappingInfo $mappingInfo, array &$paramList) {
         $field = $mappingInfo->GetField($this->FieldNumber);
-        return $this->Finalize(sprintf("%s IS NULL", SDAUtils::Escape($field->FieldName)));
+        return $this->Finalize(sprintf("%s IS NULL", Utils::Escape($field->FieldName)));
     }
 
 }
@@ -338,7 +342,7 @@ class SDAIsNull extends SDABaseCriteria {
 /**
  * Like Criteria
  */
-class SDALike extends SDABaseCriteria {
+class LikeCrit extends BaseCriteria {
 
     public $FieldNumber;
     public $Value;
@@ -348,11 +352,11 @@ class SDALike extends SDABaseCriteria {
         $this->Value = $value;
     }
 
-    public function GenerateAndFill(SDAMappingInfo $mappingInfo, array &$paramList) {
+    public function GenerateAndFill(MappingInfo $mappingInfo, array &$paramList) {
         $field = $mappingInfo->GetField($this->FieldNumber);
         $paramName = ':' . $field->FieldName . '_' . count($paramList);
-        $paramList[] = new SDAFieldParameter($paramName, $field->FieldType, $this->Value);
-        return $this->Finalize(sprintf("%s LIKE %s", SDAUtils::Escape($field->FieldName), $paramName));
+        $paramList[] = new FieldParameter($paramName, $field->FieldType, $this->Value);
+        return $this->Finalize(sprintf("%s LIKE %s", Utils::Escape($field->FieldName), $paramName));
     }
 
 }
@@ -360,7 +364,7 @@ class SDALike extends SDABaseCriteria {
 /**
  * Between Criteria
  */
-class SDABetween extends SDABaseCriteria {
+class BetweenCrit extends BaseCriteria {
 
     public $FieldNumber;
     public $ValueLower;
@@ -372,13 +376,13 @@ class SDABetween extends SDABaseCriteria {
         $this->ValueHigher = $valueHigher;
     }
 
-    public function GenerateAndFill(SDAMappingInfo $mappingInfo, array &$paramList) {
+    public function GenerateAndFill(MappingInfo $mappingInfo, array &$paramList) {
         $field = $mappingInfo->GetField($this->FieldNumber);
         $paramNameLower = ':' . $field->FieldName . '_min_' . count($paramList);
         $paramNameHigher = ':' . $field->FieldName . '_max_' . count($paramList);
-        $paramList[] = new SDAFieldParameter($paramNameLower, $field->FieldType, $this->ValueLower);
-        $paramList[] = new SDAFieldParameter($paramNameHigher, $field->FieldType, $this->ValueHigher);
-        return $this->Finalize(sprintf("%s BETWEEN %s AND %s", SDAUtils::Escape($field->FieldName), $paramNameLower, $paramNameHigher));
+        $paramList[] = new FieldParameter($paramNameLower, $field->FieldType, $this->ValueLower);
+        $paramList[] = new FieldParameter($paramNameHigher, $field->FieldType, $this->ValueHigher);
+        return $this->Finalize(sprintf("%s BETWEEN %s AND %s", Utils::Escape($field->FieldName), $paramNameLower, $paramNameHigher));
     }
 
 }
@@ -386,7 +390,7 @@ class SDABetween extends SDABaseCriteria {
 /**
  * In Criteria
  */
-class SDAIn extends SDABaseCriteria {
+class InCrit extends BaseCriteria {
 
     public $FieldNumber;
     public $ValueList;
@@ -396,17 +400,17 @@ class SDAIn extends SDABaseCriteria {
         $this->ValueList = $valueList;
     }
 
-    public function GenerateAndFill(SDAMappingInfo $mappingInfo, array &$paramList) {
+    public function GenerateAndFill(MappingInfo $mappingInfo, array &$paramList) {
         if ($this->ValueList != null && count($this->ValueList) > 0) {
             $field = $mappingInfo->GetField($this->FieldNumber);
-            $str = sprintf("%s IN (", SDAUtils::Escape($field->FieldName));
+            $str = sprintf("%s IN (", Utils::Escape($field->FieldName));
             $firstFlag = true;
             foreach ($this->ValueList as $value) {
                 if (!$firstFlag) {
                     $str .= ', ';
                 }
                 $paramName = ':' . $field->FieldName . '_' . count($paramList);
-                $paramList[] = new SDAFieldParameter($paramName, $field->FieldType, $value);
+                $paramList[] = new FieldParameter($paramName, $field->FieldType, $value);
                 $str .= $paramName;
                 $firstFlag = false;
             }
@@ -421,7 +425,7 @@ class SDAIn extends SDABaseCriteria {
 /**
  * This Class holds the Mapping Info for the Table and all Fields
  */
-class SDAMappingInfo {
+class MappingInfo {
 
     public $TableName;
     public $FieldList;
@@ -432,7 +436,7 @@ class SDAMappingInfo {
     }
 
     public function AddField($fieldNumber, $fieldName, $fieldType, $isPrimary = false, $isAutoIncrement = false) {
-        $this->FieldList[$fieldNumber] = new SDAMappingInfoField($fieldNumber, $fieldName, $fieldType, $isPrimary, $isAutoIncrement);
+        $this->FieldList[$fieldNumber] = new MappingInfoField($fieldNumber, $fieldName, $fieldType, $isPrimary, $isAutoIncrement);
     }
 
     public function GetField($fieldNumber) {
@@ -444,7 +448,7 @@ class SDAMappingInfo {
 /**
  *  This Class holds the Mapping Info for a Field
  */
-class SDAMappingInfoField {
+class MappingInfoField {
 
     public $FieldNumber;
     public $FieldName;
@@ -465,7 +469,7 @@ class SDAMappingInfoField {
 /**
  * This Class is used for the Batch Updates
  */
-class SDAUpdateField {
+class UpdateField {
 
     public $FieldNumber;
     public $NewValue;
@@ -480,13 +484,13 @@ class SDAUpdateField {
 /**
  * Class with different Utilities used
  */
-class SDAUtils {
+class Utils {
 
     public static function Escape($string) {
         return '`' . $string . '`';
     }
 
-    public static function FormatSDAte(DateTime $date = null) {
+    public static function FormatDate(DateTime $date = null) {
         if ($date == null) {
             $date = new DateTime();
         }
@@ -498,7 +502,7 @@ class SDAUtils {
 /**
  * Base Class for the Entities
  */
-abstract class SDAEntityBase {
+abstract class EntityBase {
 
     public $IsNew = true;
 
@@ -507,17 +511,17 @@ abstract class SDAEntityBase {
 /**
  * Core-Class which is for Executing all the Queries
  */
-class SDAEntityHandler {
+class EntityHandler {
 
     public $DEBUG = false;
-    /* @var $_connectionProvider SDAConnectionProvider */
+    /* @var $_connectionProvider ConnectionProvider */
     private $_connectionProvider = null;
 
-    function __construct(SDAConnectionProvider $connectionProvider) {
+    function __construct(ConnectionProvider $connectionProvider) {
         $this->_connectionProvider = $connectionProvider;
     }
 
-    public function Save(SDAEntityBase $entity, array $excludeFields = null) {
+    public function Save(EntityBase $entity, array $excludeFields = null) {
         if ($entity->IsNew) {
             $this->Insert($entity);
         } else {
@@ -525,18 +529,18 @@ class SDAEntityHandler {
         }
     }
 
-    private function Insert(SDAEntityBase $entity) {
+    private function Insert(EntityBase $entity) {
         $mapping = self::GetMappingFromEntity($entity);
         $autoIncField = null;
         // Build the Insert Command
-        $cmd = 'INSERT INTO ' . SDAUtils::Escape($mapping->TableName);
+        $cmd = 'INSERT INTO ' . Utils::Escape($mapping->TableName);
         $cmd .= ' (';
         foreach ($mapping->FieldList as $field) {
             if ($field->IsAutoIncrement) {
                 $autoIncField = $field;
                 continue;
             }
-            $cmd .= SDAUtils::Escape($field->FieldName) . ', ';
+            $cmd .= Utils::Escape($field->FieldName) . ', ';
         }
         $cmd = substr($cmd, 0, -2);
         $cmd .= ') VALUES(';
@@ -577,11 +581,11 @@ class SDAEntityHandler {
         $pdo = null;
     }
 
-    private function Update(SDAEntityBase $entity, array $excludeFields = null) {
+    private function Update(EntityBase $entity, array $excludeFields = null) {
         $mapping = self::GetMappingFromEntity($entity);
         $primaryField = null;
         // Build the Update Command
-        $cmd = 'UPDATE ' . SDAUtils::Escape($mapping->TableName) . ' SET ';
+        $cmd = 'UPDATE ' . Utils::Escape($mapping->TableName) . ' SET ';
         foreach ($mapping->FieldList as $field) {
             if ($field->IsPrimary) {
                 $primaryField = $field;
@@ -595,12 +599,12 @@ class SDAEntityHandler {
                     continue;
                 }
             }
-            $cmd .= SDAUtils::Escape($field->FieldName) . ' = ' . ':' . $field->FieldName . ', ';
+            $cmd .= Utils::Escape($field->FieldName) . ' = ' . ':' . $field->FieldName . ', ';
         }
         $cmd = substr($cmd, 0, -2);
         // Add the Primary Where
         $primaryWhereParam = ':' . $primaryField->FieldName . "_primWhere";
-        $cmd .= ' WHERE ' . SDAUtils::Escape($primaryField->FieldName) . ' = ' . $primaryWhereParam;
+        $cmd .= ' WHERE ' . Utils::Escape($primaryField->FieldName) . ' = ' . $primaryWhereParam;
         if ($this->DEBUG) {
             echo $cmd;
         }
@@ -632,11 +636,11 @@ class SDAEntityHandler {
         $pdo = null;
     }
 
-    public function Delete(SDAEntityBase $entity) {
+    public function Delete(EntityBase $entity) {
         $mapping = self::GetMappingFromEntity($entity);
         $primaryField = null;
         // Build the Delete Command
-        $cmd = 'DELETE FROM ' . SDAUtils::Escape($mapping->TableName);
+        $cmd = 'DELETE FROM ' . Utils::Escape($mapping->TableName);
         // Search the Primary Field
         foreach ($mapping->FieldList as $field) {
             if ($field->IsPrimary) {
@@ -646,7 +650,7 @@ class SDAEntityHandler {
         }
         // Add the Primary Where
         $primaryWhereParam = ':' . $primaryField->FieldName . "_primWhere";
-        $cmd .= ' WHERE ' . SDAUtils::Escape($primaryField->FieldName) . ' = ' . $primaryWhereParam;
+        $cmd .= ' WHERE ' . Utils::Escape($primaryField->FieldName) . ' = ' . $primaryWhereParam;
         if ($this->DEBUG) {
             echo $cmd;
         }
@@ -665,9 +669,9 @@ class SDAEntityHandler {
         $pdo = null;
     }
 
-    public function GetEntity($entityClass, SDAQuery $query = null) {
+    public function GetEntity($entityClass, Query $query = null) {
         if ($query == null) {
-            $query = new SDAQuery();
+            $query = new Query();
         }
         $query->Limit = 1;
         $entityList = self::GetEntityList($entityClass, $query);
@@ -677,7 +681,7 @@ class SDAEntityHandler {
         return null;
     }
 
-    public function GetEntityList($entityClass, SDAQuery $query = null) {
+    public function GetEntityList($entityClass, Query $query = null) {
         $resultArray = array();
         $mapping = self::GetMappingFromClass($entityClass);
         // Build the Select Command
@@ -689,10 +693,10 @@ class SDAEntityHandler {
                     continue;
                 }
             }
-            $cmd .= SDAUtils::Escape($field->FieldName) . ', ';
+            $cmd .= Utils::Escape($field->FieldName) . ', ';
         }
         $cmd = substr($cmd, 0, -2);
-        $cmd .= ' FROM ' . SDAUtils::Escape($mapping->TableName);
+        $cmd .= ' FROM ' . Utils::Escape($mapping->TableName);
         // Add additional Stuff from the Query
         $paramList = null;
         if ($query != null) {
@@ -735,11 +739,11 @@ class SDAEntityHandler {
         return $resultArray;
     }
 
-    public function GetEntityCount($entityClass, SDAQuery $query = null) {
+    public function GetEntityCount($entityClass, Query $query = null) {
         $mapping = self::GetMappingFromClass($entityClass);
         // Build the Count Command
         $cmd = 'SELECT COUNT(*)';
-        $cmd .= ' FROM ' . SDAUtils::Escape($mapping->TableName);
+        $cmd .= ' FROM ' . Utils::Escape($mapping->TableName);
         // Add additional Stuff from the Query
         $paramList = null;
         if ($query != null) {
@@ -773,11 +777,11 @@ class SDAEntityHandler {
         return $count;
     }
 
-    public function BatchUpdate($entityClass, array $updateFieldList, SDAQuery $query = null) {
+    public function BatchUpdate($entityClass, array $updateFieldList, Query $query = null) {
         $mapping = self::GetMappingFromClass($entityClass);
         $batchSize = ($query == null) ? 0 : $query->Limit;
         // Build the Update Command
-        $cmd = sprintf('UPDATE %s SET ', SDAUtils::Escape($mapping->TableName));
+        $cmd = sprintf('UPDATE %s SET ', Utils::Escape($mapping->TableName));
         // Create an empty Param List
         $paramList = array();
         // Add the Values with need updating
@@ -786,9 +790,9 @@ class SDAEntityHandler {
             $field = $mapping->GetField($updateField->FieldNumber);
             // Create and add the Parameter
             $paramName = ':' . $field->FieldName . '_' . count($paramList);
-            $paramList[] = new SDAFieldParameter($paramName, $field->FieldType, $updateField->NewValue);
+            $paramList[] = new FieldParameter($paramName, $field->FieldType, $updateField->NewValue);
             // Add the Parameter to the Command
-            $cmd .= SDAUtils::Escape($field->FieldName) . ' = ' . $paramName . ', ';
+            $cmd .= Utils::Escape($field->FieldName) . ' = ' . $paramName . ', ';
         }
         $cmd = substr($cmd, 0, -2);
         // Add the Where
@@ -829,11 +833,11 @@ class SDAEntityHandler {
         return $totalRowsAffected;
     }
 
-    public function BatchDelete($entityClass, SDAQuery $query = null) {
+    public function BatchDelete($entityClass, Query $query = null) {
         $mapping = self::GetMappingFromClass($entityClass);
         $batchSize = ($query == null) ? 0 : $query->Limit;
         // Build the Delete Command
-        $cmd = sprintf('DELETE FROM %s ', SDAUtils::Escape($mapping->TableName));
+        $cmd = sprintf('DELETE FROM %s ', Utils::Escape($mapping->TableName));
         $paramList = null;
         if ($query != null) {
             // Add the Where
@@ -875,7 +879,7 @@ class SDAEntityHandler {
     }
 
     // Creates the Order By Part of a Query
-    private static function CreateOrderBy(SDAMappingInfo $mappingInfo, SDAQuery $query) {
+    private static function CreateOrderBy(MappingInfo $mappingInfo, Query $query) {
         if ($query != null) {
             if (count($query->OrderFields) > 0) {
                 $str = ' ORDER BY ';
@@ -893,7 +897,7 @@ class SDAEntityHandler {
         return '';
     }
 
-    private static function CreateLimitFromQuery(SDAQuery $query) {
+    private static function CreateLimitFromQuery(Query $query) {
         if ($query != null) {
             return self::CreateLimit($query->Limit);
         }
@@ -907,7 +911,7 @@ class SDAEntityHandler {
         return '';
     }
 
-    private static function CreateWhere(SDAMappingInfo $mappingInfo, SDAQuery $query, array &$paramList) {
+    private static function CreateWhere(MappingInfo $mappingInfo, Query $query, array &$paramList) {
         if ($query != null) {
             if (count($query->ExpressionList) > 0) {
                 return ' WHERE ' . $query->GenerateAndFill($mappingInfo, $paramList);
@@ -916,13 +920,13 @@ class SDAEntityHandler {
         return '';
     }
 
-    private static function FillEntityFromRow(SDAMappingInfo $mapping, SDAEntityBase $entity, $row) {
+    private static function FillEntityFromRow(MappingInfo $mapping, EntityBase $entity, $row) {
         foreach ($row as $key => $value) {
             $entity->{$key} = $value;
         }
     }
 
-    private static function GetMappingFromEntity(SDAEntityBase $entity) {
+    private static function GetMappingFromEntity(EntityBase $entity) {
         $entityClass = get_class($entity);
         return self::GetMappingFromClass($entityClass);
     }
