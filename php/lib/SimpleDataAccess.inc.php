@@ -7,7 +7,7 @@
  * Project Url: https://github.com/Roemer/SimpleDataAccess
  * 
  * @author Roman Baeriswyl
- * @version 0.91
+ * @version 0.92
  * @copyright Copyright &copy; 2012-2015 Roman Baeriswyl
  * 
  * ToDo
@@ -22,6 +22,7 @@
  
 namespace SimpleDataAccess;
 use \PDO;
+use \DateTime;
 
 class ConnectionProvider {
 

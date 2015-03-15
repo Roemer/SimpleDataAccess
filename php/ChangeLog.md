@@ -1,5 +1,8 @@
 # ChangeLog
 
+### 0.92 (2015-03-15)
+- [BUG] Fixed usage of DateTime
+
 ### 0.91 (2015-03-15)
 - [BREAKING CHANGE] Introduced namespace and did some renamings
 
