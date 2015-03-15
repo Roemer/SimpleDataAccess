@@ -2,6 +2,7 @@
 
 ### 0.9 (2014-08-24)
 - [BREAKING CHANGE] Made the whole thing non-static
+- [BREAKING CHANGE] Renamed to SimpleDataAccess (SDA)
 
 ### 0.7 (2014-08-21)
 - [FEAT] Added GetEntityCount
