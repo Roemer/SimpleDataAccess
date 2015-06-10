@@ -39,12 +39,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\DataEntityBase.cs" />
+    <Compile Include="Core\FieldValue.cs" />
+    <Compile Include="Core\SpecialDbType.cs" />
     <Compile Include="Criterias\And.cs" />
     <Compile Include="Criterias\Bases\CriteriaBase.cs" />
     <Compile Include="Criterias\Bases\FieldCriteriaBase.cs" />
     <Compile Include="Criterias\Bases\JunctionCriteriaBase.cs" />
     <Compile Include="Criterias\Eq.cs" />
     <Compile Include="Criterias\Or.cs" />
+    <Compile Include="Mapping\DataEntityMapping.cs" />
+    <Compile Include="Mapping\FieldType.cs" />
+    <Compile Include="Mapping\MappingField.cs" />
+    <Compile Include="Mapping\MappingTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
