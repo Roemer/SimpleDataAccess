@@ -56,7 +56,7 @@ namespace SimpleDataAccess.Core
                 foreach (var field in table.Fields)
                 {
                     var fieldValue = new FieldValue(field);
-                    _fieldValues.Insert(field.FieldIndex, fieldValue);
+                    _fieldValues[field.FieldIndex] = fieldValue;
                 }
             }
         }

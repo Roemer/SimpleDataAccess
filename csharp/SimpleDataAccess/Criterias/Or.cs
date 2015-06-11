@@ -4,5 +4,9 @@ namespace SimpleDataAccess.Criterias
 {
     public class Or : JunctionCriteriaBase
     {
+        protected override string Op
+        {
+            get { return "OR"; }
+        }
     }
 }

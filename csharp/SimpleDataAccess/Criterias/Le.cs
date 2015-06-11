@@ -3,18 +3,18 @@
 namespace SimpleDataAccess.Criterias
 {
     /// <summary>
-    /// Equal
+    /// Less or equal
     /// </summary>
-    public class Eq : FieldCriteriaBase
+    public class Le : FieldCriteriaBase
     {
-        public Eq(int fieldIndex, object value)
+        public Le(int fieldIndex, object value)
             : base(fieldIndex, value)
         {
         }
 
         protected override string Op
         {
-            get { return "="; }
+            get { return "<="; }
         }
     }
 }

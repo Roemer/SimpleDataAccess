@@ -46,7 +46,15 @@
     <Compile Include="Criterias\Bases\CriteriaBase.cs" />
     <Compile Include="Criterias\Bases\FieldCriteriaBase.cs" />
     <Compile Include="Criterias\Bases\JunctionCriteriaBase.cs" />
+    <Compile Include="Criterias\Between.cs" />
     <Compile Include="Criterias\Eq.cs" />
+    <Compile Include="Criterias\Ge.cs" />
+    <Compile Include="Criterias\Gt.cs" />
+    <Compile Include="Criterias\In.cs" />
+    <Compile Include="Criterias\IsNull.cs" />
+    <Compile Include="Criterias\Le.cs" />
+    <Compile Include="Criterias\Like.cs" />
+    <Compile Include="Criterias\Lt.cs" />
     <Compile Include="Criterias\Or.cs" />
     <Compile Include="Mapping\DataEntityMapping.cs" />
     <Compile Include="Mapping\FieldType.cs" />
