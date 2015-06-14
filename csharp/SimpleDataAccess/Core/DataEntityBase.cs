@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using SimpleDataAccess.Definitions;
 using SimpleDataAccess.Mapping;
 
 namespace SimpleDataAccess.Core
@@ -10,6 +11,9 @@ namespace SimpleDataAccess.Core
     public abstract class DataEntityBase
     {
         private List<FieldValue> _fieldValues;
+
+        // The current state of the entity
+        public EntityState State { get; set; }
 
         /// <summary>
         /// Constructor

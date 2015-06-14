@@ -1,4 +1,4 @@
-﻿namespace SimpleDataAccess.Core
+﻿namespace SimpleDataAccess.Definitions
 {
     public enum SpecialDbType
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using SimpleDataAccess.Core;
+using SimpleDataAccess.Definitions;
 
 namespace SimpleDataAccess.Mapping
 {

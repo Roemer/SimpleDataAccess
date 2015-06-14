@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using SimpleDataAccess.Core;
+using SimpleDataAccess.Definitions;
 
 namespace SimpleDataAccess.Mapping
 {

@@ -40,8 +40,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\DataEntityBase.cs" />
+    <Compile Include="Core\EntityHandlerBase.cs" />
+    <Compile Include="Core\OrderByItem.cs" />
+    <Compile Include="Definitions\EntityState.cs" />
     <Compile Include="Core\FieldValue.cs" />
-    <Compile Include="Core\SpecialDbType.cs" />
+    <Compile Include="Core\OrderByItemBase.cs" />
+    <Compile Include="Core\OrderByItemManual.cs" />
+    <Compile Include="Core\Query.cs" />
+    <Compile Include="Core\QueryHandlerBase.cs" />
+    <Compile Include="Definitions\SortDirection.cs" />
+    <Compile Include="Definitions\SpecialDbType.cs" />
     <Compile Include="Criterias\And.cs" />
     <Compile Include="Criterias\Bases\CriteriaBase.cs" />
     <Compile Include="Criterias\Bases\FieldCriteriaBase.cs" />
