@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using SimpleDataAccess.Mapping;
 
 namespace SimpleDataAccess.Core
@@ -15,6 +16,9 @@ namespace SimpleDataAccess.Core
 
         public static DataEntityMapping GetMapping(Type type)
         {
+            // Make sure the static constructor was fired
+            RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+            // Return the correct type
             return StaticMappings[type];
         }
     }

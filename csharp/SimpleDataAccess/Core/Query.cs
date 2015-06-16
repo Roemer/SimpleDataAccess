@@ -12,6 +12,7 @@ namespace SimpleDataAccess.Core
 
         public int Offset { get; set; }
         public int Limit { get; set; }
+        public bool FullyQualifiedFieldNames { get; set; }
 
         public IReadOnlyCollection<int> Fields
         {

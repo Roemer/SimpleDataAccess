@@ -12,6 +12,7 @@ namespace SimpleDataAccess.Mapping
         public MappingTable(string tableName, params MappingField[] fields)
         {
             TableName = tableName;
+            Array.ForEach(fields, field => field.Table = this);
             Fields = Array.AsReadOnly(fields);
         }
 

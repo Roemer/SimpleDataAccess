@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,7 @@ namespace SimpleDataAccess.Core
     public abstract class EntityHandlerBase<T> where T : DataEntityBase, new()
     {
         protected abstract IDbCommand CreateCommand(FieldType fieldType);
-        protected abstract StringBuilder Escape(string value, StringBuilder builder);
+        protected abstract string Escape(string value);
 
         /// <summary>
         /// Gets the first found entity or null if no entity could be found
@@ -58,6 +57,15 @@ namespace SimpleDataAccess.Core
         {
             // List of fields
             var fieldsToSelect = GetFields(mapping, query);
+
+            // Create the field select part
+            var sb = new StringBuilder();
+            foreach (var field in fieldsToSelect)
+            {
+                AddField(field, sb, query);
+            }
+            var cmd = sb.ToString();
+
             return null;
         }
 
@@ -84,45 +92,36 @@ namespace SimpleDataAccess.Core
                 }
             }
             return String.Format("SELECT {0}{1} FROM {2}", topStr, fields, CreateTableAndLocking(mappingInfo.TableName, query, lockType, refTableName));
-        }
-
-        private string GetFieldSelectPart(MappingInfo mappingInfo, MappingInfoField mappingInfoField, Query query)
-        {
-            string fieldName = mappingInfoField.FieldName;
-
-            if (query != null && query.FullyQualifiedFieldnames)
-            {
-                // Add the Column Name with the Table Name
-                string tableName = mappingInfo.TableName;
-                return String.Format("[{0}].[{1}]", tableName, fieldName);
-            }
-
-            // Add the Column Name
-            return String.Format("[{0}]", fieldName);
         }*/
 
         private IEnumerable<MappingField> GetFields(DataEntityMapping mapping, Query query)
         {
             var retList = new List<MappingField>();
-
             if (query == null || query.Fields.Count == 0)
             {
                 // Add all fields
-                foreach (var x in mapping.Tables)
-                {
-                    retList.AddRange(x.Fields);
-                }
+                retList.AddRange(mapping.Fields);
             }
             else
             {
-                foreach (var fieldIndex in query.Fields)
-                {
-                 // TODO   
-                }
                 // Add only the specified fields
-                //retList.AddRange(mappingInfo.GetSpecificColumns(query.Fields));
+                retList.AddRange(query.Fields.Select(fieldIndex => mapping.Fields[fieldIndex]));
             }
             return retList.ToArray();
+        }
+
+        private void AddField(MappingField field, StringBuilder sb, Query query)
+        {
+            var fieldName = field.FieldName;
+            if (query != null && query.FullyQualifiedFieldNames)
+            {
+                // Add the table
+                var tableName = field.Table.TableName;
+                sb.Append(Escape(tableName)).Append(".");
+            }
+
+            // Add the field
+            sb.Append(Escape(fieldName));
         }
 
         private void FillEntityFromDict(T entity, Dictionary<int, object> valueDict)

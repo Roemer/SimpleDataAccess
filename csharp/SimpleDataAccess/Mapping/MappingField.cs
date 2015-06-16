@@ -36,6 +36,11 @@ namespace SimpleDataAccess.Mapping
         public int Length { get; set; }
 
         /// <summary>
+        /// The table which contains this field
+        /// </summary>
+        public MappingTable Table { get; internal set; }
+
+        /// <summary>
         /// Simple check if this field is part (or equals) the primary key
         /// </summary>
         public bool IsPrimary { get { return PrimaryIndex >= 0; } }
