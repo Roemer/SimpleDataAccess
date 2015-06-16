@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="Core\DataEntityBase.cs" />
     <Compile Include="Core\EntityHandlerBase.cs" />
+    <Compile Include="Core\MappingProvider.cs" />
     <Compile Include="Core\OrderByItem.cs" />
     <Compile Include="Definitions\EntityState.cs" />
     <Compile Include="Core\FieldValue.cs" />

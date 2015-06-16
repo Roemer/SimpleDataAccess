@@ -1,47 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using SimpleDataAccess.Definitions;
 
 namespace SimpleDataAccess.Mapping
 {
     public class MappingTable
     {
-        private readonly List<MappingField> _fields;
-
         public string TableName { get; private set; }
 
-        public IReadOnlyList<MappingField> Fields
-        {
-            get { return _fields.AsReadOnly(); }
-        }
+        public IReadOnlyList<MappingField> Fields { get; private set; }
 
-        public MappingTable(string tableName)
+        public MappingTable(string tableName, params MappingField[] fields)
         {
             TableName = tableName;
-            _fields = new List<MappingField>();
-        }
-
-        public MappingField AddField(int fieldIndex, string fieldName, DbType dbType)
-        {
-            return AddField(fieldIndex, fieldName, new FieldType(dbType));
-        }
-
-        public MappingField AddField(int fieldIndex, string fieldName, SpecialDbType specialDbType)
-        {
-            return AddField(fieldIndex, fieldName, new FieldType(specialDbType));
-        }
-
-        public MappingField AddField(int fieldIndex, string fieldName, FieldType fieldType)
-        {
-            var field = new MappingField
-            {
-                FieldIndex = fieldIndex,
-                FieldName = fieldName,
-                FieldType = fieldType
-            };
-            _fields.Add(field);
-            return field;
+            Fields = Array.AsReadOnly(fields);
         }
 
         public override string ToString()

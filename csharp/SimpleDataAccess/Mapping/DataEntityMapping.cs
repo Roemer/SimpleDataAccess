@@ -1,30 +1,32 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SimpleDataAccess.Mapping
 {
     public class DataEntityMapping
     {
-        private readonly List<MappingTable> _tables;
+        public IReadOnlyList<MappingTable> Tables { get; private set; }
+        public IReadOnlyList<MappingField> Fields { get; private set; }
 
-        public IReadOnlyList<MappingTable> Tables
+        public void AddTables(params MappingTable[] tables)
         {
-            get { return _tables.AsReadOnly(); }
+            // Tables
+            Tables = Array.AsReadOnly(tables);
+
+            // All fields from all tables
+            var totalFields = Tables.Sum(table => table.Fields.Count);
+            var allFields = new MappingField[totalFields];
+            foreach (var field in Tables.SelectMany(table => table.Fields))
+            {
+                allFields[field.FieldIndex] = field;
+            }
+            Fields = Array.AsReadOnly(allFields);
         }
 
-        public DataEntityMapping()
+        public override string ToString()
         {
-            _tables = new List<MappingTable>();
-        }
-
-        public MappingTable AddTable(MappingTable table)
-        {
-            _tables.Add(table);
-            return table;
-        }
-
-        public MappingTable AddTable(string tableName)
-        {
-            return AddTable(new MappingTable(tableName));
+            return String.Format("{0} tables, {1} fields", Tables.Count, Fields.Count);
         }
     }
 }

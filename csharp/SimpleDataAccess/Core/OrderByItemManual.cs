@@ -20,7 +20,7 @@ namespace SimpleDataAccess.Core
             {
                 return String.Format("{0}", _manualSql);
             }
-            return string.Format("{0} {1}", _manualSql, _direction);
+            return String.Format("{0} {1}", _manualSql, _direction);
         }
     }
 }

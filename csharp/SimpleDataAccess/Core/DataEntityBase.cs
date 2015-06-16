@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using SimpleDataAccess.Definitions;
+﻿using SimpleDataAccess.Definitions;
 using SimpleDataAccess.Mapping;
 
 namespace SimpleDataAccess.Core
@@ -10,7 +8,7 @@ namespace SimpleDataAccess.Core
     /// </summary>
     public abstract class DataEntityBase
     {
-        private List<FieldValue> _fieldValues;
+        private FieldValue[] _fieldValues;
 
         // The current state of the entity
         public EntityState State { get; set; }
@@ -52,16 +50,11 @@ namespace SimpleDataAccess.Core
         private void InitializeColumns()
         {
             var mapping = GetMapping();
-            var totalFields = mapping.Tables.Sum(table => table.Fields.Count);
-            _fieldValues = new List<FieldValue>(totalFields);
-
-            foreach (var table in mapping.Tables)
+            _fieldValues = new FieldValue[mapping.Fields.Count];
+            foreach (var field in mapping.Fields)
             {
-                foreach (var field in table.Fields)
-                {
-                    var fieldValue = new FieldValue(field);
-                    _fieldValues[field.FieldIndex] = fieldValue;
-                }
+                var fieldValue = new FieldValue(field);
+                _fieldValues[field.FieldIndex] = fieldValue;
             }
         }
     }
