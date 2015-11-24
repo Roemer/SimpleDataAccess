@@ -1,4 +1,7 @@
-﻿using SimpleDataAccess.Criterias.Bases;
+﻿using System.Data;
+using SimpleDataAccess.Core;
+using SimpleDataAccess.Criterias.Bases;
+using SimpleDataAccess.Mapping;
 
 namespace SimpleDataAccess.Criterias
 {
@@ -11,6 +14,11 @@ namespace SimpleDataAccess.Criterias
         {
             _fieldIndex = fieldIndex;
             _value = value;
+        }
+
+        internal override string Process(EntityHandlerBase entityHandler, DataEntityMappingBase mapping, IDbCommand cmd)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

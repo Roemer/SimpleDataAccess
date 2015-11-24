@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using SimpleDataAccess.Core;
 using SimpleDataAccess.Criterias.Bases;
+using SimpleDataAccess.Mapping;
 
 namespace SimpleDataAccess.Criterias
 {
@@ -18,6 +21,11 @@ namespace SimpleDataAccess.Criterias
             {
                 throw new Exception(string.Format("IN Query for Column {0} has no Items", _fieldIndex));
             }
+        }
+
+        internal override string Process(EntityHandlerBase entityHandler, DataEntityMappingBase mapping, IDbCommand cmd)
+        {
+            throw new NotImplementedException();
         }
     }
 }

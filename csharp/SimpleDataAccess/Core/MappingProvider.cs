@@ -1,24 +1,36 @@
-﻿using System;
+﻿using SimpleDataAccess.Mapping;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using SimpleDataAccess.Mapping;
 
 namespace SimpleDataAccess.Core
 {
     public static class MappingProvider
     {
-        private static readonly Dictionary<Type, DataEntityMapping> StaticMappings = new Dictionary<Type, DataEntityMapping>();
+        private static readonly Dictionary<Type, DataEntityMappingBase> StaticMappings = new Dictionary<Type, DataEntityMappingBase>();
 
-        public static void AddMapping(Type type , DataEntityMapping mapping)
+        public static void AddMapping(Type type, DataEntityMappingBase mapping)
         {
             StaticMappings[type] = mapping;
         }
 
-        public static DataEntityMapping GetMapping(Type type)
+        public static void AddMapping<T>(DataEntityMappingBase mapping) where T : DataEntityBase
         {
-            // Make sure the static constructor was fired
-            RuntimeHelpers.RunClassConstructor(type.TypeHandle);
-            // Return the correct type
+            AddMapping(typeof(T), mapping);
+        }
+
+        public static DataEntityMappingBase GetMapping<T>() where T : DataEntityBase
+        {
+            return GetMapping(typeof(T));
+        }
+
+        public static DataEntityMappingBase GetMapping(Type type)
+        {
+            DataEntityMappingBase mapping;
+            if (!StaticMappings.TryGetValue(type, out mapping))
+            {
+                RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+            }
             return StaticMappings[type];
         }
     }

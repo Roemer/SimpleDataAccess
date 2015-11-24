@@ -43,6 +43,7 @@
     <Compile Include="Core\EntityHandlerBase.cs" />
     <Compile Include="Core\MappingProvider.cs" />
     <Compile Include="Core\OrderByItem.cs" />
+    <Compile Include="Core\SqlHelper.cs" />
     <Compile Include="Definitions\EntityState.cs" />
     <Compile Include="Core\FieldValue.cs" />
     <Compile Include="Core\OrderByItemBase.cs" />
@@ -65,10 +66,10 @@
     <Compile Include="Criterias\Like.cs" />
     <Compile Include="Criterias\Lt.cs" />
     <Compile Include="Criterias\Or.cs" />
-    <Compile Include="Mapping\DataEntityMapping.cs" />
+    <Compile Include="Mapping\DataEntityMappingBase.cs" />
     <Compile Include="Mapping\FieldType.cs" />
     <Compile Include="Mapping\MappingField.cs" />
-    <Compile Include="Mapping\MappingTable.cs" />
+    <Compile Include="Definitions\TableHint.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

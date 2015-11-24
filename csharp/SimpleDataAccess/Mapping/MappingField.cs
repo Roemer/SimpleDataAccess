@@ -9,7 +9,7 @@ namespace SimpleDataAccess.Mapping
         /// <summary>
         /// Index of the field in the entity
         /// </summary>
-        public int FieldIndex { get; private set; }
+        public int FieldIndex { get; internal set; }
         /// <summary>
         /// Database name of the field
         /// </summary>
@@ -36,26 +36,22 @@ namespace SimpleDataAccess.Mapping
         public int Length { get; set; }
 
         /// <summary>
-        /// The table which contains this field
-        /// </summary>
-        public MappingTable Table { get; internal set; }
-
-        /// <summary>
         /// Simple check if this field is part (or equals) the primary key
         /// </summary>
         public bool IsPrimary { get { return PrimaryIndex >= 0; } }
 
-        public MappingField(int fieldIndex, string fieldName, DbType dbType)
-            : this(fieldIndex, fieldName, new FieldType(dbType))
+        public DataEntityMappingBase Mapping { get; internal set; }
+
+        public MappingField(string fieldName, DbType dbType)
+            : this(fieldName, new FieldType(dbType))
         { }
 
-        public MappingField(int fieldIndex, string fieldName, SpecialDbType specialDbType)
-            : this(fieldIndex, fieldName, new FieldType(specialDbType))
+        public MappingField(string fieldName, SpecialDbType specialDbType)
+            : this(fieldName, new FieldType(specialDbType))
         { }
 
-        public MappingField(int fieldIndex, string fieldName, FieldType fieldType)
+        public MappingField(string fieldName, FieldType fieldType)
         {
-            FieldIndex = fieldIndex;
             FieldName = fieldName;
             FieldType = fieldType;
         }

@@ -1,4 +1,5 @@
 ﻿using SimpleDataAccess.Criterias.Bases;
+using SimpleDataAccess.Mapping;
 
 namespace SimpleDataAccess.Criterias
 {
@@ -7,12 +8,12 @@ namespace SimpleDataAccess.Criterias
     /// </summary>
     public class Ge : FieldCriteriaBase
     {
-        public Ge(int fieldIndex, object value)
-            : base(fieldIndex, value)
+        public Ge(MappingField field, object value)
+            : base(field, value)
         {
         }
 
-        protected override string Op
+        internal override string Op
         {
             get { return ">="; }
         }

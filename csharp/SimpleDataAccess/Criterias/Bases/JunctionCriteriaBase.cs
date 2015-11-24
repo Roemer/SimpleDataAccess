@@ -1,4 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Data;
+using System.Text;
+using SimpleDataAccess.Core;
+using SimpleDataAccess.Mapping;
 
 namespace SimpleDataAccess.Criterias.Bases
 {
@@ -12,7 +16,7 @@ namespace SimpleDataAccess.Criterias.Bases
             _innerExpressions = new List<CriteriaBase>();
         }
 
-        protected abstract string Op { get; }
+        internal abstract string Op { get; }
 
         private readonly List<CriteriaBase> _innerExpressions;
 
@@ -25,6 +29,27 @@ namespace SimpleDataAccess.Criterias.Bases
         {
             _innerExpressions.Add(innerCriteria);
             return this;
+        }
+
+        internal override string Process(EntityHandlerBase entityHandler, DataEntityMappingBase mapping, IDbCommand cmd)
+        {
+            var sb = new StringBuilder();
+            if (HasCriterias)
+            {
+                sb.Append("(");
+                var firstFlag = true;
+                foreach (var crit in _innerExpressions)
+                {
+                    if (!firstFlag)
+                    {
+                        sb.AppendFormat(" {0} ", Op);
+                    }
+                    sb.Append(crit.Process(entityHandler, mapping, cmd));
+                    firstFlag = false;
+                }
+                sb.Append(")");
+            }
+            return Finalize(sb.ToString());
         }
     }
 }

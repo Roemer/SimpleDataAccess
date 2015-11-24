@@ -24,23 +24,23 @@ namespace SimpleDataAccess.Core
         /// <summary>
         /// Method to get the mapping for this entity
         /// </summary>
-        public abstract DataEntityMapping GetMapping();
+        public abstract DataEntityMappingBase GetMapping();
 
         /// <summary>
         /// Get's the value for the given field
         /// </summary>
-        protected internal T GetValue<T>(int fieldIndex)
+        protected internal T GetValue<T>(MappingField field)
         {
-            var colValue = _fieldValues[fieldIndex];
+            var colValue = _fieldValues[field.FieldIndex];
             return colValue.Get<T>();
         }
 
         /// <summary>
         /// Sets the value for the given field
         /// </summary>
-        protected internal void SetValue<T>(int fieldIndex, T newValue)
+        protected internal void SetValue<T>(MappingField field, T newValue)
         {
-            var colValue = _fieldValues[fieldIndex];
+            var colValue = _fieldValues[field.FieldIndex];
             colValue.Set(newValue);
         }
 

@@ -1,103 +1,152 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
+﻿using SimpleDataAccess.Criterias.Bases;
 using SimpleDataAccess.Definitions;
 using SimpleDataAccess.Mapping;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
 
 namespace SimpleDataAccess.Core
 {
-    public abstract class EntityHandlerBase<T> where T : DataEntityBase, new()
+    public abstract class EntityHandlerBase
     {
-        protected abstract IDbCommand CreateCommand(FieldType fieldType);
-        protected abstract string Escape(string value);
+        public abstract IDbCommand CreateCommand();
+        public abstract DbParameter CreateParameter(string paramName, FieldType fieldType, object value);
+        public abstract string Escape(string value);
+        public abstract string GetTable(string tableName, TableHint tableHint);
 
         /// <summary>
         /// Gets the first found entity or null if no entity could be found
         /// </summary>
-        public T Get(Query query)
+        public T Get<T>(Query query) where T : DataEntityBase, new()
         {
-            // Make sure to return only one entity
+            // Make sure to return only the first entity
             if (query == null)
             {
                 query = new Query();
             }
+            query.Offset = 0;
             query.Limit = 1;
 
-            // Get the values with the associated column
-            var valueDictList = GetValueList(query);
+            // Get the values for the wanted row
+            var valueDictList = GetValueList(typeof(T), query);
 
             T entity = null;
             if (valueDictList.Count > 0)
             {
                 // Initialize the Entity
-                entity = new T();
-                entity.State = EntityState.Initialized;
+                entity = new T { State = EntityState.Initialized };
                 FillEntityFromDict(entity, valueDictList[0]);
             }
             return entity;
         }
 
-        public List<T> GetList(Query query)
+        /// <summary>
+        /// Get a list of entities with the wanted criterias
+        /// </summary>
+        public List<T> GetList<T>(Query query) where T : DataEntityBase, new()
         {
-            return null;
+            // Get all wanted rows
+            var valueDictList = GetValueList(typeof(T), query);
+
+            var retList = new List<T>();
+            foreach (var currValueDict in valueDictList)
+            {
+                var entity = new T { State = EntityState.Initialized };
+                FillEntityFromDict(entity, currValueDict);
+                retList.Add(entity);
+            }
+            return retList;
         }
 
-        private List<Dictionary<int, object>> GetValueList(Query query)
+        private List<Dictionary<MappingField, object>> GetValueList(Type entityType, Query query)
         {
-            var mapping = MappingProvider.GetMapping(typeof(T));
+            var mapping = MappingProvider.GetMapping(entityType);
 
-            // Create the Select Statement based on specified Fields
-            var cmdStr = CreateSelect(mapping, query);
+            // Create the command
+            var cmd = CreateCommand();
 
-            return null;
+            // Create the select statement based on specified fields
+            var cmdStr = BuildSelect(mapping, query);
+            // Create the where part of the query
+            cmdStr += BuildWhere(mapping, query, cmd);
+            //cmdStr += " " + CreateOrderBy(query);
+            // Set the command text
+            cmd.CommandText = cmdStr;
+
+            // Get the Entities
+            var retValue = ExecuteEntityReader(mapping, cmd);
+
+            return retValue;
         }
 
-        private string CreateSelect(DataEntityMapping mapping, Query query)
+        /// <summary>
+        /// Build the select part
+        /// </summary>
+        protected string BuildSelect(DataEntityMappingBase mapping, Query query)
         {
-            // List of fields
-            var fieldsToSelect = GetFields(mapping, query);
+            var fields = BuildFieldList(mapping, query);
+            var table = GetTable(mapping.TableName, query.TableHint);
+            return String.Format("SELECT {0} FROM {1}", fields, table);
+        }
 
-            // Create the field select part
+        /// <summary>
+        /// Build the where part
+        /// Also adds parameters to the command if there are any
+        /// </summary>
+        protected string BuildWhere(DataEntityMappingBase mapping, Query query, IDbCommand cmd)
+        {
             var sb = new StringBuilder();
-            foreach (var field in fieldsToSelect)
+            var firstFlag = true;
+            // Loop thru all the criterias
+            foreach (var crit in query.Criterias)
             {
-                AddField(field, sb, query);
+                // Check if the current criteria is a junction criteria (and/or)
+                if (crit is JunctionCriteriaBase)
+                {
+                    if (!((JunctionCriteriaBase)crit).HasCriterias)
+                    {
+                        // It doesn't have and nested criterias so skip it
+                        continue;
+                    }
+                }
+                sb.Append(firstFlag ? " WHERE " : " AND ");
+                // Append the criteria
+                sb.Append(crit.Process(this, mapping, cmd));
+                // Mark that the first critieria was processed
+                firstFlag = false;
             }
-            var cmd = sb.ToString();
-
-            return null;
+            return sb.ToString();
         }
 
-        /*private string CreateSelect(MappingInfo mappingInfo, Query query, LockingType lockType, string refTableName)
+        /// <summary>
+        /// Builds a list of all fields which should be selected
+        /// </summary>
+        protected string BuildFieldList(DataEntityMappingBase mapping, Query query)
         {
-            // Generate the Field Array
-            IEnumerable<MappingInfoField> fieldList = GetFields(mappingInfo, query);
+            // List of fields (either chosen ones or all)
+            var fieldsToSelect = GetFields(mapping, query);
+            var fields = String.Join(",", fieldsToSelect.Select(x => BuildField(x, query)));
+            return fields;
+        }
 
-            // Join the Fields together
-            string fields = String.Empty;
-            foreach (MappingInfoField mif in fieldList)
+        private string BuildField(MappingField field, Query query)
+        {
+            if (query != null && query.FullyQualifiedFieldNames)
             {
-                fields += ", " + GetFieldSelectPart(mappingInfo, mif, query);
+                // Add the table and field
+                return Escape(field.Mapping.TableName) + "." + Escape(field.FieldName);
             }
-            fields = fields.Remove(0, 2);
+            // Add the field only
+            return Escape(field.FieldName);
+        }
 
-            // Get the TOP Part if needed
-            string topStr = String.Empty;
-            if (query != null)
-            {
-                if (query.Limit > 0)
-                {
-                    topStr = String.Format("TOP {0} ", query.Limit);
-                }
-            }
-            return String.Format("SELECT {0}{1} FROM {2}", topStr, fields, CreateTableAndLocking(mappingInfo.TableName, query, lockType, refTableName));
-        }*/
-
-        private IEnumerable<MappingField> GetFields(DataEntityMapping mapping, Query query)
+        private IList<MappingField> GetFields(DataEntityMappingBase mapping, Query query)
         {
             var retList = new List<MappingField>();
-            if (query == null || query.Fields.Count == 0)
+            if (query == null || query.Fields == null || query.Fields.Count == 0)
             {
                 // Add all fields
                 retList.AddRange(mapping.Fields);
@@ -105,30 +154,42 @@ namespace SimpleDataAccess.Core
             else
             {
                 // Add only the specified fields
-                retList.AddRange(query.Fields.Select(fieldIndex => mapping.Fields[fieldIndex]));
+                retList.AddRange(query.Fields);
             }
             return retList.ToArray();
         }
 
-        private void AddField(MappingField field, StringBuilder sb, Query query)
+        private List<Dictionary<MappingField, object>> ExecuteEntityReader(DataEntityMappingBase mapping, IDbCommand cmd)
         {
-            var fieldName = field.FieldName;
-            if (query != null && query.FullyQualifiedFieldNames)
-            {
-                // Add the table
-                var tableName = field.Table.TableName;
-                sb.Append(Escape(tableName)).Append(".");
-            }
+            // Initialize a lookup dictionary to map the column-mame to the column-field
+            var sqlFieldToMappingFieldDict = mapping.Fields.ToDictionary(field => field.FieldName);
 
-            // Add the field
-            sb.Append(Escape(fieldName));
+            var retList = new List<Dictionary<MappingField, object>>();
+            using (var reader = SqlHelper.ExecuteReader(cmd))
+            {
+                while (reader.Read())
+                {
+                    var objValueDict = new Dictionary<MappingField, object>();
+                    for (var i = 0; i < reader.FieldCount; i++)
+                    {
+                        object value = null;
+                        if (!reader.IsDBNull(i))
+                        {
+                            value = reader.GetValue(i);
+                        }
+                        objValueDict.Add(sqlFieldToMappingFieldDict[reader.GetName(i)], value);
+                    }
+                    retList.Add(objValueDict);
+                }
+            }
+            return retList;
         }
 
-        private void FillEntityFromDict(T entity, Dictionary<int, object> valueDict)
+        private void FillEntityFromDict(DataEntityBase entity, Dictionary<MappingField, object> valueDict)
         {
             foreach (var kvp in valueDict)
             {
-                // Set the new v
+                // Set the new value
                 entity.SetValue(kvp.Key, kvp.Value);
             }
         }

@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using SimpleDataAccess.Criterias.Bases;
+﻿using SimpleDataAccess.Criterias.Bases;
 using SimpleDataAccess.Definitions;
+using SimpleDataAccess.Mapping;
+using System.Collections.Generic;
 
 namespace SimpleDataAccess.Core
 {
@@ -8,13 +9,24 @@ namespace SimpleDataAccess.Core
     {
         private readonly List<CriteriaBase> _criterias;
         private readonly List<OrderByItemBase> _orderItems;
-        private readonly List<int> _fields;
+        private readonly List<MappingField> _fields;
 
         public int Offset { get; set; }
         public int Limit { get; set; }
         public bool FullyQualifiedFieldNames { get; set; }
+        public TableHint TableHint { get; set; }
 
-        public IReadOnlyCollection<int> Fields
+        public IReadOnlyList<CriteriaBase> Criterias
+        {
+            get { return _criterias.AsReadOnly(); }
+        }
+
+        public IReadOnlyList<OrderByItemBase> OrderItems
+        {
+            get { return _orderItems.AsReadOnly(); }
+        }
+
+        public IReadOnlyList<MappingField> Fields
         {
             get { return _fields.AsReadOnly(); }
         }
@@ -23,7 +35,7 @@ namespace SimpleDataAccess.Core
         {
             _criterias = new List<CriteriaBase>();
             _orderItems = new List<OrderByItemBase>();
-            _fields = new List<int>();
+            _fields = new List<MappingField>();
         }
 
         public Query Add(CriteriaBase expression)
@@ -44,7 +56,7 @@ namespace SimpleDataAccess.Core
             return AddOrder(orderItem);
         }
 
-        public Query SetFieldList(params int[] fields)
+        public Query SetFieldList(params MappingField[] fields)
         {
             _fields.Clear();
             if (fields.Length > 0)

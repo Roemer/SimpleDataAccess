@@ -2,9 +2,9 @@
 {
     public abstract class QueryHandlerBase<T> where T : DataEntityBase, new()
     {
-        public EntityHandlerBase<T> EntityHandler { get; private set; }
+        public EntityHandlerBase EntityHandler { get; private set; }
 
-        protected QueryHandlerBase(EntityHandlerBase<T> entityHandler)
+        protected QueryHandlerBase(EntityHandlerBase entityHandler)
         {
             EntityHandler = entityHandler;
         }
