@@ -1,7 +1,7 @@
-﻿using System;
-using SimpleDataAccess.Definitions;
+﻿using SimpleDataAccess.Definitions;
+using System;
 
-namespace SimpleDataAccess.Core
+namespace SimpleDataAccess.Querying
 {
     public sealed class OrderByItem : OrderByItemBase
     {

@@ -1,6 +1,6 @@
-﻿using SimpleDataAccess.Criterias.Bases;
-using SimpleDataAccess.Definitions;
+﻿using SimpleDataAccess.Definitions;
 using SimpleDataAccess.Mapping;
+using SimpleDataAccess.Querying.Criterias.Bases;
 using System;
 using System.Collections.Generic;
 using System.Data;

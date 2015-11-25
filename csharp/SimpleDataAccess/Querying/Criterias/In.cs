@@ -1,12 +1,12 @@
-﻿using System;
+﻿using SimpleDataAccess.Core;
+using SimpleDataAccess.Mapping;
+using SimpleDataAccess.Querying.Criterias.Bases;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using SimpleDataAccess.Core;
-using SimpleDataAccess.Criterias.Bases;
-using SimpleDataAccess.Mapping;
 
-namespace SimpleDataAccess.Criterias
+namespace SimpleDataAccess.Querying.Criterias
 {
     public class In : CriteriaBase
     {

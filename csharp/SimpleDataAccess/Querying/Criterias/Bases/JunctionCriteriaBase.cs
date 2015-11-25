@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using SimpleDataAccess.Core;
+using SimpleDataAccess.Mapping;
+using System.Collections.Generic;
 using System.Data;
 using System.Text;
-using SimpleDataAccess.Core;
-using SimpleDataAccess.Mapping;
 
-namespace SimpleDataAccess.Criterias.Bases
+namespace SimpleDataAccess.Querying.Criterias.Bases
 {
     /// <summary>
     /// Base criteria for junctions

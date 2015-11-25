@@ -1,4 +1,4 @@
-﻿namespace SimpleDataAccess.Core
+﻿namespace SimpleDataAccess.Querying
 {
     public abstract class OrderByItemBase
     {

@@ -1,9 +1,9 @@
-﻿using System.Data;
-using SimpleDataAccess.Core;
-using SimpleDataAccess.Criterias.Bases;
+﻿using SimpleDataAccess.Core;
 using SimpleDataAccess.Mapping;
+using SimpleDataAccess.Querying.Criterias.Bases;
+using System.Data;
 
-namespace SimpleDataAccess.Criterias
+namespace SimpleDataAccess.Querying.Criterias
 {
     public class Between : CriteriaBase
     {

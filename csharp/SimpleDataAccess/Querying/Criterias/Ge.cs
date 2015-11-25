@@ -1,9 +1,9 @@
-﻿using SimpleDataAccess.Criterias.Bases;
-using SimpleDataAccess.Mapping;
+﻿using SimpleDataAccess.Mapping;
+using SimpleDataAccess.Querying.Criterias.Bases;
 
-namespace SimpleDataAccess.Criterias
+namespace SimpleDataAccess.Querying.Criterias
 {
-   /// <summary>
+    /// <summary>
     /// Greater or equal
     /// </summary>
     public class Ge : FieldCriteriaBase

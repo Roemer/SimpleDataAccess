@@ -1,6 +1,6 @@
-﻿using SimpleDataAccess.Criterias.Bases;
+﻿using SimpleDataAccess.Querying.Criterias.Bases;
 
-namespace SimpleDataAccess.Criterias
+namespace SimpleDataAccess.Querying.Criterias
 {
     public class Or : JunctionCriteriaBase
     {

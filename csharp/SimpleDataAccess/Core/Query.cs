@@ -1,6 +1,7 @@
-﻿using SimpleDataAccess.Criterias.Bases;
-using SimpleDataAccess.Definitions;
+﻿using SimpleDataAccess.Definitions;
 using SimpleDataAccess.Mapping;
+using SimpleDataAccess.Querying;
+using SimpleDataAccess.Querying.Criterias.Bases;
 using System.Collections.Generic;
 
 namespace SimpleDataAccess.Core

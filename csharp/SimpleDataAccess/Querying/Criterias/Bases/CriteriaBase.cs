@@ -3,7 +3,7 @@ using SimpleDataAccess.Mapping;
 using System;
 using System.Data;
 
-namespace SimpleDataAccess.Criterias.Bases
+namespace SimpleDataAccess.Querying.Criterias.Bases
 {
     public abstract class CriteriaBase
     {

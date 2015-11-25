@@ -1,19 +1,17 @@
-﻿using System.Data;
-using SimpleDataAccess.Core;
-using SimpleDataAccess.Criterias.Bases;
+﻿using SimpleDataAccess.Core;
 using SimpleDataAccess.Mapping;
+using SimpleDataAccess.Querying.Criterias.Bases;
+using System.Data;
 
-namespace SimpleDataAccess.Criterias
+namespace SimpleDataAccess.Querying.Criterias
 {
-    public class Like : CriteriaBase
+    public class IsNull : CriteriaBase
     {
         private readonly int _fieldIndex;
-        private readonly string _value;
 
-        public Like(int fieldIndex, string value)
+        public IsNull(int fieldIndex)
         {
             _fieldIndex = fieldIndex;
-            _value = value;
         }
 
         internal override string Process(EntityHandlerBase entityHandler, DataEntityMappingBase mapping, IDbCommand cmd)
